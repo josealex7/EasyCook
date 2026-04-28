@@ -1,10 +1,11 @@
 package com.easycook.app.screens
 
+import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -15,16 +16,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
 fun WebScreen() {
-    var url by remember { mutableStateOf("") }
-    var loaded by remember { mutableStateOf(false) }
+    var url by remember { mutableStateOf("https://www.recetasgratis.net/") }
+    var urlActual by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         Text(
@@ -34,27 +35,35 @@ fun WebScreen() {
             color = Color(0xFF4CAF50)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // Campo URL
+        // Caja de texto + botón
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Ingresa una URL de receta", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(
+                    "Ingresa una URL para cargar",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = url,
                     onValueChange = { url = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("https://www.recetas.com/...") },
+                    placeholder = { Text("https://www.ejemplo.com") },
                     leadingIcon = {
-                        Icon(Icons.Filled.Language, contentDescription = null,
-                            tint = Color(0xFF4CAF50))
+                        Icon(
+                            Icons.Filled.Language,
+                            contentDescription = null,
+                            tint = Color(0xFF4CAF50)
+                        )
                     },
+                    singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF4CAF50),
@@ -64,83 +73,90 @@ fun WebScreen() {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Button(
-                    onClick = { if (url.isNotEmpty()) loaded = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(Icons.Filled.Search, contentDescription = null)
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = {
+                            if (url.isNotBlank()) {
+                                val final = if (url.startsWith("http://") || url.startsWith("https://"))
+                                    url
+                                else
+                                    "https://$url"
+                                urlActual = final
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Filled.Search, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Cargar página")
+                    }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Cargar Receta")
+                    OutlinedButton(
+                        onClick = { urlActual = null },
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Filled.Close, contentDescription = "Limpiar")
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // Vista previa simulada
-        if (loaded) {
+        // WebView real
+        if (urlActual != null) {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFd4f5d4))
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.CheckCircle, contentDescription = null,
-                            tint = Color(0xFF4CAF50))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Receta cargada exitosamente", fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp)
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { context ->
+                        WebView(context).apply {
+                            layoutParams = ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT
+                            )
+                            webViewClient = WebViewClient()
+                            settings.javaScriptEnabled = true
+                            settings.domStorageEnabled = true
+                            settings.loadWithOverviewMode = true
+                            settings.useWideViewPort = true
+                            settings.builtInZoomControls = true
+                            settings.displayZoomControls = false
+                        }
+                    },
+                    update = { webView ->
+                        urlActual?.let { webView.loadUrl(it) }
                     }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp)
-                            .background(Color(0xFFFFE0B2), RoundedCornerShape(12.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Filled.Restaurant, contentDescription = null,
-                            tint = Color.White, modifier = Modifier.size(50.dp))
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text("Receta Externa", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text(url, fontSize = 12.sp, color = Color.Gray)
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Button(
-                        onClick = { },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Filled.Favorite, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Guardar Receta")
-                    }
-                }
+                )
             }
         } else {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp)
+                    .weight(1f)
                     .background(Color(0xFFF5F5F5), RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Filled.Language, contentDescription = null,
-                        tint = Color.LightGray, modifier = Modifier.size(48.dp))
+                    Icon(
+                        Icons.Filled.Language,
+                        contentDescription = null,
+                        tint = Color.LightGray,
+                        modifier = Modifier.size(64.dp)
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Ingresa una URL para ver la receta", color = Color.LightGray,
-                        fontSize = 13.sp)
+                    Text(
+                        "Escribe una URL y presiona \"Cargar página\"",
+                        color = Color.Gray,
+                        fontSize = 13.sp
+                    )
                 }
             }
         }

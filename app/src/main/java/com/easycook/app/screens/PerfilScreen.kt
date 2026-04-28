@@ -68,8 +68,52 @@ fun PerfilScreen() {
             items = listOf(
                 Triple(Icons.Filled.Favorite, "Preferencias", "Vegetariano"),
                 Triple(Icons.Filled.Warning, "Alergias", "Ninguna"),
-                Triple(Icons.Filled.Star, "Experiencia", "Intermedia")
+                Triple(Icons.Filled.Star, "Nivel", "Intermedio")
             )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Estudios
+        TextCard(
+            title = "Estudios",
+            icon = Icons.Filled.School,
+            content = "• Técnico en Gastronomía — Instituto Culinario Nacional (2018-2020)\n" +
+                    "• Diplomado en Cocina Italiana — Le Cordon Bleu Online (2021)\n" +
+                    "• Curso de Pastelería Profesional — Academia Dulce Arte (2022)\n" +
+                    "• Certificación en Manipulación de Alimentos — INVIMA (2023)\n" +
+                    "• Taller de Cocina Vegetariana Avanzada — Chef School (2024)"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Experiencia
+        TextCard(
+            title = "Experiencia",
+            icon = Icons.Filled.Work,
+            content = "• Chef Ejecutivo — Restaurante La Trattoria (2023 - Actualidad)\n" +
+                    "Encargado de la cocina principal, diseño de menús estacionales y " +
+                    "coordinación de un equipo de 8 personas.\n\n" +
+                    "• Sous Chef — Hotel Boutique El Mirador (2021 - 2023)\n" +
+                    "Apoyo al chef principal, preparación de platos para eventos y " +
+                    "supervisión del área de pastelería.\n\n" +
+                    "• Cocinero de línea — Bistró Gourmet (2020 - 2021)\n" +
+                    "Preparación de platos a la carta, manejo de estaciones frías y calientes."
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Biografía
+        TextCard(
+            title = "Sobre mí",
+            icon = Icons.Filled.Info,
+            content = "Soy un cocinero apasionado por los sabores auténticos y las recetas tradicionales " +
+                    "con un toque moderno. Me especializo en cocina mediterránea y vegetariana. " +
+                    "Mi filosofía es simple: ingredientes frescos, técnica precisa y mucho amor por lo " +
+                    "que hago. Disfruto enseñar y compartir conocimiento con otros amantes de la cocina, " +
+                    "y siempre estoy buscando nuevas inspiraciones para crear experiencias gastronómicas " +
+                    "memorables. Cuando no estoy en la cocina, suelo recorrer mercados locales en " +
+                    "busca de ingredientes únicos o probando recetas en familia."
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -83,6 +127,40 @@ fun PerfilScreen() {
                 Triple(Icons.Filled.ExitToApp, "Cerrar sesión", "")
             )
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun TextCard(title: String, icon: ImageVector, content: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFd4f5d4))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = Color(0xFF4CAF50))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            // Caja con scroll interno para textos largos (cumple requisito)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 140.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    text = content,
+                    fontSize = 13.sp,
+                    color = Color.DarkGray,
+                    lineHeight = 20.sp
+                )
+            }
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.easycook.app.screens
 
+import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -18,6 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 
+// JavaScript es necesario para que la mayoría de sitios web modernos rendericen.
+// El usuario ingresa la URL manualmente, no se inyecta HTML externo, y no hay
+// puentes JS-Android (no se usa addJavascriptInterface), por lo que el riesgo
+// de XSS es controlado.
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebScreen() {
     var url by remember { mutableStateOf("https://www.recetasgratis.net/") }
@@ -132,7 +138,11 @@ fun WebScreen() {
                         }
                     },
                     update = { webView ->
-                        urlActual?.let { webView.loadUrl(it) }
+                        // Solo recargamos si la URL cambió (evita reload en cada recomposición)
+                        if (webView.tag != urlActual) {
+                            webView.tag = urlActual
+                            urlActual?.let { webView.loadUrl(it) }
+                        }
                     }
                 )
             }

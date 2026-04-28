@@ -53,9 +53,10 @@ fun VideoScreen() {
     var videoActual by remember { mutableStateOf(videos.first()) }
     var isLoading by remember { mutableStateOf(true) }
     var hasError by remember { mutableStateOf(false) }
+    var reloadKey by remember { mutableIntStateOf(0) }
 
-    // Cuando cambia el video seleccionado, reseteamos los estados
-    LaunchedEffect(videoActual.url) {
+    // Cuando cambia el video seleccionado o pedimos reload, reseteamos los estados
+    LaunchedEffect(videoActual.url, reloadKey) {
         isLoading = true
         hasError = false
     }
@@ -118,8 +119,9 @@ fun VideoScreen() {
                         }
                     },
                     update = { videoView ->
-                        if (videoView.tag != videoActual.url) {
-                            videoView.tag = videoActual.url
+                        val currentTag = "${videoActual.url}|$reloadKey"
+                        if (videoView.tag != currentTag) {
+                            videoView.tag = currentTag
                             videoView.setVideoURI(Uri.parse(videoActual.url))
                         }
                     }
@@ -179,12 +181,8 @@ fun VideoScreen() {
                         Spacer(modifier = Modifier.height(8.dp))
                         TextButton(
                             onClick = {
-                                isLoading = true
-                                hasError = false
-                                // Forzar recarga: cambiamos a otro y volvemos
-                                val temp = videoActual
-                                videoActual = videos.first { it != temp }
-                                videoActual = temp
+                                // Incrementar reloadKey dispara el LaunchedEffect y el update()
+                                reloadKey++
                             }
                         ) {
                             Icon(
